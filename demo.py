@@ -40,7 +40,7 @@ if st.button("Description"):
     st.markdown(
         """
         <div style="border-radius: 10px; background-color: #f0f0f0; padding: 15px; margin-top: 10px;">
-            <p style="font-size: 18px; color: #333;">This is a demo of using the [MAPIE]("https://mapie.readthedocs.io/en/latest/") library for regression over synthetic data with noise. The user can select the type of dataset, noise type, and noise level/factor. The MAPIE prediction and prediction interval are displayed in the plot below. The model performance metrics and coverage are displayed in the table below the plot.</p>
+            <p style="font-size: 18px; color: #333;">This is a demo of using the MAPIE library for regression over synthetic data with noise. The user can select the type of dataset, noise type, and noise level/factor. The MAPIE prediction and prediction interval are displayed in the plot below. The model performance metrics and coverage are displayed in the table below the plot.</p>
         </div>
         """,
         unsafe_allow_html=True
