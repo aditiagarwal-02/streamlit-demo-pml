@@ -11,22 +11,25 @@ def add_homoskedastic_noise(y, noise_level):
 
 # Function to add heteroskedastic noise to the ground truth
 def add_heteroskedastic_noise(y, noise_factor):
-    return y + np.random.normal(0, noise_factor * np.abs(np.sin(2 * np.pi * X)), len(y))
+    return y + np.random.normal(0,noise_factor * X**2, len(y))
 
 def rmse(y_pred, y_true):
     return np.sqrt(np.mean((y_pred - y_true) ** 2))
 # Streamlit UI
-st.title("MAPIE Regression Demo with Homoskedastic/Heteroskedastic Noise")
+st.title("MAPIE Regression Demo with Noise")
 
 # Sidebar for user input
 st.sidebar.header("Parameters")
 dataset_type = st.sidebar.selectbox("Dataset Type", ["Sine", "Cosine", "Polynomial"])
-noise_type = st.sidebar.selectbox("Noise Type", ["Homoskedastic", "Heteroskedastic"])
+noise_type = st.sidebar.selectbox("Noise Type", ["Homoskedastic", "Heteroskedastic"], index=1)
 noise_level = st.sidebar.slider("Noise Level/Factor", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
 
 # Generate synthetic data based on the selected dataset type
 np.random.seed(0)
-X = np.linspace(-1, 1, 100)
+
+X_lower = st.slider("X lower limit", min_value=-100.0, max_value=100.0, value=-15.0, step=1.0)
+X_upper = st.slider("X upper limit", min_value=-100.0, max_value=100.0, value=23.0, step=1.0)
+X = np.linspace(X_lower, X_upper, 100)
 
 if dataset_type == "Sine":
     y_ground_truth = np.sin(2 * np.pi * X)
@@ -66,7 +69,7 @@ ax.scatter(X, y_noisy, label='Noisy Data', color='red')
 # Set labels and title
 ax.set_xlabel('X-axis')
 ax.set_ylabel('Y-axis')
-ax.set_xlim([-1,1])
+# ax.set_xlim([-1,1])
 
 
 # Show legend
@@ -78,25 +81,30 @@ st.pyplot(fig)
 
 
 # Main content
-st.write(f"### Ground Truth vs. Noisy Data vs. MAPIE Prediction ({noise_type} Noise)")
+st.write(f"### Dataset vs. MAPIE Prediction ({noise_type} Noise)")
 
 # Plotting the ground truth
-st.line_chart({"Ground Truth": y_ground_truth, "Noisy Data": y_noisy, "MAPIE Prediction": mape_model.predict(X.reshape(-1, 1))})
+st.line_chart({"Noisy Data": y_noisy, "MAPIE Prediction": mape_model.predict(X.reshape(-1, 1))})
 
-# Display model performance
-st.write("### Model Performance")
-st.write(f"MAPIE Prediction R2 Score: {mape_model.score(X.reshape(-1, 1), y_noisy)}")
-# st.write(f"MAPIE Prediction MAE: {mape_model.error(X.reshape(-1, 1), y_noisy)}")
-st.write(f"MAPE Prediction RMSE: {rmse(mape_model.predict(X.reshape(-1, 1)), y_noisy)}")
-# st.write(f"MAPIE Prediction Coverage: {coverage_error(y_noisy.reshape(-1,1), mape_model.predict(X.reshape(-1, 1)))}")
-# Display uncertainty intervals
-# noise_level = st.sidebar.slider("Noise Level/Factor", min_value=0.0, max_value=1.0, value=0.1, step=0.05)
+
+# st.write(f"MAPIE Prediction Coverage: {1 - coverage_error(y_noisy.reshape(-1, 1), mape_model.predict(X.reshape(-1, 1)))}")
 confidence_interval = st.slider("Uncertainty Interval", min_value=0.01, max_value=99.99, value=95.00, step=5.00)
 alpha = (100-confidence_interval) / 100
 y_pred, y_pis = mape_model.predict(X.reshape(-1, 1), alpha=alpha)
 lower_bound = [subarray[0, 0] for subarray in y_pis]
 upper_bound = [subarray[1, 0] for subarray in y_pis]
 fig, ax = plt.subplots()
+
+is_within_interval = np.logical_and(y_noisy >= y_pis[:, 0, 0], y_noisy <= y_pis[:, 1, 0])
+
+# Compute the coverage manually
+coverage = np.mean(is_within_interval)
+# Display model performance
+st.write("### Model Performance")
+st.write(f"MAPIE Prediction R2 Score: {mape_model.score(X.reshape(-1, 1), y_noisy)}")
+# st.write(f"MAPIE Prediction MAE: {mape_model.error(X.reshape(-1, 1), y_noisy)}")
+st.write(f"MAPE Prediction RMSE: {rmse(mape_model.predict(X.reshape(-1, 1)), y_noisy)}")
+st.write(f"MAPIE Prediction Coverage: {coverage}")
 
 # Plot the noisy data as a scatter plot
 ax.scatter(X, y_noisy, label='Ground Truth', color='red', alpha=0.5)
@@ -111,8 +119,8 @@ ax.plot(X, y_pred, label='MAPIE Prediction', color='blue')
 ax.set_xlabel('X-axis')
 ax.set_ylabel('Y-axis')
 ax.set_title('MAPIE Prediction and Prediction Interval with ' + str(confidence_interval) + '% Confidence')
-ax.set_xlim([-1,1])
-ax.set_ylim([-2,2])
+# ax.set_xlim([-1,1])
+# ax.set_ylim([-8,8])
 
 # Show legend
 ax.legend()
