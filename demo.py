@@ -35,6 +35,20 @@ noise_level = st.sidebar.slider("Noise Level/Factor", min_value=0.0, max_value=1
 
 st.title("MAPIE Regression Demo with Noise")
 
+if st.button("Description"):
+    # Display a message when the button is clicked
+    st.markdown(
+        """
+        <div style="border-radius: 10px; background-color: #f0f0f0; padding: 15px; margin-top: 10px;">
+            <p style="font-size: 18px; color: #333;">This is a demo of using the [MAPIE](https://mapie.readthedocs.io/en/latest/) library for regression over synthetic data with noise. The user can select the type of dataset, noise type, and noise level/factor. The MAPIE prediction and prediction interval are displayed in the plot below. The model performance metrics and coverage are displayed in the table below the plot.</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+
+
+
 # Generate synthetic data based on the selected dataset type
 np.random.seed(0)
 
